@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Пятнашки 3x3 - классическая головоломка</title>
+    <style>
+        * {
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(145deg, #2c5a2e 0%, #1a3a1c 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .game-container {
+            background: rgba(0,0,0,0.35);
+            border-radius: 56px;
+            padding: 20px;
+            box-shadow: 0 25px 40px rgba(0,0,0,0.5);
+        }
+
+        .game-panel {
+            background: #2d2b1f;
+            border-radius: 36px;
+            padding: 24px;
+            box-shadow: inset 0 1px 4px rgba(255,255,200,0.2), 0 10px 25px rgba(0,0,0,0.4);
+        }
+
+        canvas {
+            display: block;
+            margin: 0 auto;
+            border-radius: 28px;
+            box-shadow: 0 8px 18px rgba(0,0,0,0.4);
+            cursor: pointer;
+            background-color: #b87c4a;
+            width: 100%;
+            height: auto;
+        }
+
+        .info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 25px;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .moves-box {
+            background: #1f2a1b;
+            padding: 10px 22px;
+            border-radius: 60px;
+            color: #ffefb9;
+            font-weight: bold;
+            font-size: 1.6rem;
+            letter-spacing: 1px;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.6), 0 2px 4px rgba(255,255,200,0.1);
+        }
+
+        .moves-box span {
+            font-size: 1rem;
+            color: #e6d5a8;
+        }
+
+        button {
+            background: #f5bc70;
+            border: none;
+            font-size: 1.25rem;
+            font-weight: bold;
+            padding: 10px 28px;
+            border-radius: 60px;
+            color: #2a3b1f;
+            cursor: pointer;
+            transition: all 0.12s linear;
+            box-shadow: 0 5px 0 #9b5e1a;
+            font-family: inherit;
+        }
+
+        button:active {
+            transform: translateY(3px);
+            box-shadow: 0 2px 0 #9b5e1a;
+        }
+
+        .victory-message {
+            background: #e5c45e;
+            color: #1e4a2a;
+            padding: 8px 22px;
+            border-radius: 50px;
+            font-weight: bold;
+            font-size: 1.3rem;
+            text-align: center;
+            animation: bounce 0.4s ease;
+        }
+
+        @keyframes bounce {
+            0% { transform: scale(0.8); opacity: 0; }
+            80% { transform: scale(1.05); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        @media (max-width: 550px) {
+            .game-container { padding: 12px; }
+            .game-panel { padding: 14px; }
+            .moves-box { font-size: 1.3rem; padding: 6px 16px; }
+            button { padding: 8px 20px; font-size: 1rem; }
+            .victory-message { font-size: 1rem; padding: 5px 15px; }
+        }
+    </style>
+</head>
+<body>
+<div>
+    <div class="game-container">
+        <div class="game-panel">
+            <canvas id="puzzleCanvas" width="420" height="420"></canvas>
+            <div class="info">
+                <div class="moves-box">
+                    <span>ходы</span> <span id="moveCounter">0</span>
+                </div>
+                <button id="shuffleBtn">🔄 Перемешать</button>
+            </div>
+            <div id="victoryMsg" style="text-align: center; margin-top: 16px; min-height: 55px;"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    (function(){
+        // ---------- РАЗМЕР 3x3 (8 цифр + 0) ----------
+        const SIZE = 3;
+        const TILE_COUNT = SIZE * SIZE;  // 9 ячеек: 1..8 и 0 (пустота)
+        
+        let board = [];          // плоский массив [1,2,3,4,5,6,7,8,0]
+        let moves = 0;
+        let gameOver = false;
+        
+        // DOM элементы
+        const canvas = document.getElementById('puzzleCanvas');
+        const ctx = canvas.getContext('2d');
+        const moveSpan = document.getElementById('moveCounter');
+        const shuffleBtn = document.getElementById('shuffleBtn');
+        const victoryDiv = document.getElementById('victoryMsg');
+        
+        let tileSize = 0;   // будет обновляться при отрисовке и кликах
+        
+        // ---------- ЛОГИКА РЕШАЕМОСТИ ДЛЯ 3x3 ----------
+        // Для нечетной размерности (3) достаточно четности инверсий
+        function isSolvable(puzzle) {
+            let inversions = 0;
+            let puzzleFlat = puzzle.filter(v => v !== 0);
+            for(let i=0; i<puzzleFlat.length; i++) {
+                for(let j=i+1; j<puzzleFlat.length; j++) {
+                    if(puzzleFlat[i] > puzzleFlat[j]) inversions++;
+                }
+            }
+            // Для SIZE нечетного: нужно, чтобы inversions было четным
+            return inversions % 2 === 0;
+        }
+        
+        // Получить случайную решаемую конфигурацию для 3x3
+        function getRandomSolvableBoard() {
+            let arr = [];
+            for(let i=1; i<TILE_COUNT; i++) arr.push(i);
+            arr.push(0);   // [1,2,3,4,5,6,7,8,0]
+            
+            // Перемешиваем
+            for(let i=arr.length-1; i>0; i--) {
+                const j = Math.floor(Math.random() * (i+1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            
+            // Проверяем решаемость, если нет - меняем местами два любых непустых элемента
+            if(!isSolvable(arr)) {
+                let first = -1, second = -1;
+                for(let k=0; k<arr.length; k++) {
+                    if(arr[k] !== 0) {
+                        if(first === -1) first = k;
+                        else if(second === -1) {
+                            second = k;
+                            break;
+                        }
+                    }
+                }
+                if(first !== -1 && second !== -1) {
+                    [arr[first], arr[second]] = [arr[second], arr[first]];
+                }
+            }
+            // Повторная проверка для гарантии (на всякий случай)
+            if(!isSolvable(arr)) {
+                // Простой fallback: собрать порядок и слегка перемешать с сохранением четности
+                arr = [1,2,3,4,5,6,7,8,0];
+                // Делаем несколько разрешенных ходов от финальной позиции (это гарантирует решаемость)
+                for(let step=0; step<150; step++) {
+                    const zeroIdx = arr.indexOf(0);
+                    const rowZ = Math.floor(zeroIdx / SIZE);
+                    const colZ = zeroIdx % SIZE;
+                    const neighbors = [];
+                    if(rowZ > 0) neighbors.push(zeroIdx - SIZE);
+                    if(rowZ < SIZE-1) neighbors.push(zeroIdx + SIZE);
+                    if(colZ > 0) neighbors.push(zeroIdx - 1);
+                    if(colZ < SIZE-1) neighbors.push(zeroIdx + 1);
+                    if(neighbors.length) {
+                        const randNeighbor = neighbors[Math.floor(Math.random() * neighbors.length)];
+                        [arr[zeroIdx], arr[randNeighbor]] = [arr[randNeighbor], arr[zeroIdx]];
+                    }
+                }
+            }
+            return arr;
+        }
+        
+        // Инициализация / перемешивание поля
+        function shuffleBoard() {
+            board = getRandomSolvableBoard();
+            moves = 0;
+            gameOver = false;
+            updateMoveDisplay();
+            victoryDiv.innerHTML = '';
+            drawBoard();
+        }
+        
+        // Проверка победы (все плитки 1..8 на местах, последняя 0)
+        function checkVictory() {
+            for(let i=0; i<TILE_COUNT-1; i++) {
+                if(board[i] !== i+1) return false;
+            }
+            return board[TILE_COUNT-1] === 0;
+        }
+        
+        function updateMoveDisplay() {
+            moveSpan.innerText = moves;
+        }
+        
+        // Перемещение тайла в пустую клетку
+        function moveTile(index) {
+            if(gameOver) return false;
+            if(board[index] === 0) return false;
+            
+            const zeroIdx = board.indexOf(0);
+            const rowIndex = Math.floor(index / SIZE);
+            const colIndex = index % SIZE;
+            const zeroRow = Math.floor(zeroIdx / SIZE);
+            const zeroCol = zeroIdx % SIZE;
+            
+            const isAdjacent = (Math.abs(rowIndex - zeroRow) + Math.abs(colIndex - zeroCol)) === 1;
+            if(isAdjacent) {
+                // swap
+                [board[index], board[zeroIdx]] = [board[zeroIdx], board[index]];
+                moves++;
+                updateMoveDisplay();
+                drawBoard();
+                
+                if(checkVictory()) {
+                    gameOver = true;
+                    victoryDiv.innerHTML = '<div class="victory-message">✨ ПОБЕДА! ✨<br>🎉 Отлично! 🎉</div>';
+                }
+                return true;
+            }
+            return false;
+        }
+        
+        // ---------- ОТРИСОВКА КАНВАСА (красивые плитки) ----------
+        function drawBoard() {
+            const canvasSize = canvas.width;  // 420px
+            tileSize = canvasSize / SIZE;
+            
+            // Фон доски
+            ctx.fillStyle = '#b26b36';
+            ctx.fillRect(0, 0, canvasSize, canvasSize);
+            
+            for(let i=0; i<TILE_COUNT; i++) {
+                const row = Math.floor(i / SIZE);
+                const col = i % SIZE;
+                const x = col * tileSize;
+                const y = row * tileSize;
+                const value = board[i];
+                
+                if(value !== 0) {
+                    // Светлая плитка с градиентом
+                    const grad = ctx.createLinearGradient(x+2, y+2, x+tileSize-10, y+tileSize-10);
+                    grad.addColorStop(0, '#fff2cf');
+                    grad.addColorStop(1, '#ffe3a3');
+                    ctx.fillStyle = grad;
+                    ctx.fillRect(x+1, y+1, tileSize-3, tileSize-3);
+                    
+                    // Тёмная окантовка
+                    ctx.strokeStyle = '#9b6e42';
+                    ctx.lineWidth = 2.5;
+                    ctx.strokeRect(x+1.5, y+1.5, tileSize-5, tileSize-5);
+                    
+                    // Внутренняя тень
+                    ctx.fillStyle = '#e7c27d';
+                    ctx.fillRect(x+4, y+4, tileSize-9, tileSize-9);
+                    
+                    // Текст цифры
+                    let fontSize = Math.floor(tileSize * 0.45);
+                    ctx.font = `bold ${fontSize}px "Segoe UI", "Roboto", system-ui`;
+                    ctx.fillStyle = '#2c4724';
+                    ctx.shadowBlur = 0;
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText(value.toString(), x + tileSize/2, y + tileSize/2);
+                } else {
+                    // Пустая клетка — деревянный узор
+                    ctx.fillStyle = '#c48344';
+                    ctx.fillRect(x, y, tileSize-2, tileSize-2);
+                    ctx.fillStyle = '#b06e36';
+                    ctx.fillRect(x+3, y+3, tileSize-8, tileSize-8);
+                    // Декоративные точки-заклепки
+                    ctx.fillStyle = '#e6bc7c';
+                    ctx.beginPath();
+                    ctx.arc(x + tileSize/2, y + tileSize/2, tileSize*0.12, 0, 2*Math.PI);
+                    ctx.fill();
+                    ctx.fillStyle = '#8b5a2e';
+                    ctx.beginPath();
+                    ctx.arc(x + tileSize/2, y + tileSize/2, tileSize*0.07, 0, 2*Math.PI);
+                    ctx.fill();
+                }
+            }
+            // Сетка
+            ctx.beginPath();
+            ctx.lineWidth = 2.5;
+            ctx.strokeStyle = '#6e4622';
+            for(let i=1; i<SIZE; i++) {
+                const pos = i * tileSize;
+                ctx.moveTo(pos, 0);
+                ctx.lineTo(pos, canvasSize);
+                ctx.moveTo(0, pos);
+                ctx.lineTo(canvasSize, pos);
+                ctx.stroke();
+            }
+        }
+        
+        // ---------- ОБРАБОТЧИКИ КЛИКОВ (мышь и тач) ----------
+        function handleCanvasInteraction(e) {
+            if(gameOver) return;
+            
+            // обновим размер тайла на случай если canvas изменился (но ширина фикс)
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            
+            let clientX, clientY;
+            if(e.touches) {
+                clientX = e.touches[0].clientX;
+                clientY = e.touches[0].clientY;
+                e.preventDefault();
+            } else {
+                clientX = e.clientX;
+                clientY = e.clientY;
+            }
+            
+            let canvasX = (clientX - rect.left) * scaleX;
+            let canvasY = (clientY - rect.top) * scaleY;
+            
+            if(canvasX >= 0 && canvasX < canvas.width && canvasY >= 0 && canvasY < canvas.height) {
+                const currentTileSize = canvas.width / SIZE;
+                const col = Math.floor(canvasX / currentTileSize);
+                const row = Math.floor(canvasY / currentTileSize);
+                const index = row * SIZE + col;
+                if(index >= 0 && index < TILE_COUNT) {
+                    moveTile(index);
+                }
+            }
+        }
+        
+        // Привязка событий
+        function attachEvents() {
+            canvas.addEventListener('click', handleCanvasInteraction);
+            canvas.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                handleCanvasInteraction(e);
+            });
+        }
+        
+        // Старт игры
+        function startGame() {
+            board = getRandomSolvableBoard();
+            moves = 0;
+            gameOver = false;
+            updateMoveDisplay();
+            victoryDiv.innerHTML = '';
+            drawBoard();
+            attachEvents();
+            
+            shuffleBtn.onclick = () => {
+                shuffleBoard();
+            };
+        }
+        
+        startGame();
+    })();
+</script>
+</body>
+</html>
