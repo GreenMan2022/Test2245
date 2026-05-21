@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Генератор иконок для PWA</title>
+</head>
+<body>
+    <canvas id="canvas" width="512" height="512"></canvas>
+    <script>
+        const sizes = [72, 96, 128, 144, 152, 192, 384, 512];
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        
+        sizes.forEach(size => {
+            canvas.width = size;
+            canvas.height = size;
+            
+            // Градиент
+            const grad = ctx.createLinearGradient(0, 0, size, size);
+            grad.addColorStop(0, '#2c2f36');
+            grad.addColorStop(1, '#1a2a3a');
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, size, size);
+            
+            // Рамка
+            ctx.strokeStyle = '#d4af37';
+            ctx.lineWidth = size * 0.05;
+            ctx.strokeRect(size * 0.1, size * 0.1, size * 0.8, size * 0.8);
+            
+            // Текст
+            ctx.fillStyle = '#d4af37';
+            ctx.font = `bold ${size * 0.3}px "Segoe UI"`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('⚔️', size/2, size/2);
+            
+            // Сохраняем
+            const link = document.createElement('a');
+            link.download = `icon-${size}.png`;
+            link.href = canvas.toDataURL();
+            link.click();
+        });
+    </script>
+</body>
+</html>
