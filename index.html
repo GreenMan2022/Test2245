@@ -3,183 +3,551 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>RPG Карточка - Установка PWA</title>
+    <meta name="theme-color" content="#2c2f36">
+    <meta name="description" content="RPG карточка игрока с прокачкой силы, ловкости и монет">
+    
+    <!-- PWA manifest -->
+    <link rel="manifest" href="/Test2245/manifest.json">
+    
+    <!-- Для iOS -->
+    <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%232c2f36'/%3E%3Ctext x='50' y='68' font-size='60' text-anchor='middle' fill='%23d4af37'%3E⚔️%3C/text%3E%3C/svg%3E">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    
+    <title>RPG Карточка Игрока</title>
+    
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
         body {
             min-height: 100vh;
-            background: linear-gradient(145deg, #1a2a3a, #0f1a24);
+            background: linear-gradient(145deg, #1a2a3a 0%, #0f1a24 100%);
             display: flex;
             justify-content: center;
             align-items: center;
-            font-family: system-ui, 'Segoe UI', sans-serif;
+            font-family: 'Segoe UI', 'Poppins', system-ui, -apple-system, sans-serif;
             padding: 20px;
         }
-        .card {
-            max-width: 500px;
+
+        /* RPG карточка */
+        .rpg-card {
+            max-width: 560px;
+            width: 100%;
             background: #2c2f36;
+            background-image: radial-gradient(circle at 10% 20%, rgba(255,215,150,0.05) 2%, transparent 2.5%);
+            background-size: 28px 28px;
             border-radius: 48px;
-            padding: 30px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
-            border: 1px solid #d4af37;
-            text-align: center;
+            box-shadow: 0 25px 45px rgba(0, 0, 0, 0.5), inset 0 1px 2px rgba(255,255,255,0.05);
+            border: 1px solid rgba(210, 180, 110, 0.4);
+            overflow: hidden;
+            transition: transform 0.2s ease;
         }
-        .avatar { font-size: 80px; margin: 20px 0; }
-        h1 { color: #ffdd99; margin-bottom: 10px; }
-        .stat {
-            background: #23262f;
-            margin: 15px 0;
-            padding: 15px;
-            border-radius: 30px;
+
+        .rpg-card:hover {
+            transform: translateY(-5px);
+        }
+
+        /* Верхняя секция: аватар слева, QR справа */
+        .player-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
+            padding: 24px 28px;
+            background: rgba(20, 24, 30, 0.7);
+            border-bottom: 2px solid #d4af37;
+            gap: 20px;
+            flex-wrap: wrap;
         }
-        .stat-name { font-size: 20px; font-weight: bold; color: #ede0c8; }
-        .stat-value { font-size: 28px; font-weight: bold; color: #ffdd99; }
-        button {
+
+        .avatar {
+            width: 110px;
+            height: 110px;
+            background: linear-gradient(135deg, #2b2e3a, #1e2129);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 3px solid #e4c580;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
+            transition: all 0.2s;
+        }
+
+        .avatar span {
+            font-size: 62px;
+            filter: drop-shadow(2px 4px 6px rgba(0, 0, 0, 0.4));
+        }
+
+        .avatar:hover {
+            border-color: #ffdd88;
+            transform: scale(1.02);
+        }
+
+        .qr-area {
+            flex-shrink: 0;
+            background: #f5f2e0;
+            padding: 8px;
+            border-radius: 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        #qrcode {
+            width: 88px;
+            height: 88px;
+            background: white;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Имя игрока */
+        .player-name-section {
+            text-align: center;
+            margin: 16px 20px;
+            padding: 10px 0;
+            background: #1f222b;
+            border-radius: 60px;
+            border-bottom: 1px solid #dbb45c;
+            border-top: 1px solid #403e3a;
+        }
+
+        .player-name {
+            font-size: 1.9rem;
+            font-weight: 800;
+            letter-spacing: 2px;
+            background: linear-gradient(135deg, #FFE6B0, #e4b363);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 0 2px 3px rgba(0, 0, 0, 0.3);
+        }
+
+        .player-title {
+            font-size: 0.75rem;
+            color: #b9aa7a;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        /* Параметры */
+        .stats-container {
+            padding: 20px 28px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .stat-card {
+            background: #23262f;
+            border-radius: 32px;
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 15px;
+            box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.2), 0 5px 10px rgba(0, 0, 0, 0.2);
+            border-left: 6px solid;
+            transition: all 0.2s;
+        }
+
+        .stat-card.str { border-left-color: #e34d3a; }
+        .stat-card.agi { border-left-color: #4caf9e; }
+        .stat-card.coin { border-left-color: #f7b32b; }
+
+        .stat-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex: 2;
+            min-width: 130px;
+        }
+
+        .stat-icon {
+            font-size: 2.3rem;
+            width: 48px;
+            text-align: center;
+        }
+
+        .stat-details {
+            flex: 1;
+        }
+
+        .stat-name {
+            font-weight: bold;
+            font-size: 1.1rem;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: #ede0c8;
+        }
+
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: 800;
+            font-family: 'Monaco', monospace;
+            color: #ffdd99;
+            line-height: 1;
+            margin-top: 4px;
+            text-shadow: 0 2px 3px rgba(0, 0, 0, 0.5);
+        }
+
+        .stat-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            background: #1a1d25;
+            padding: 6px 12px;
+            border-radius: 60px;
+            box-shadow: inset 0 1px 1px rgba(255,255,255,0.05), 0 4px 8px rgba(0,0,0,0.3);
+        }
+
+        .btn-up, .btn-down {
             background: #2f3542;
             border: none;
-            font-size: 24px;
-            width: 50px;
-            height: 50px;
-            border-radius: 30px;
+            font-size: 1.6rem;
+            font-weight: bold;
+            width: 44px;
+            height: 44px;
+            border-radius: 40px;
             cursor: pointer;
             color: #eedd99;
-            margin: 0 5px;
+            transition: 0.05s linear;
+            box-shadow: 0 3px 0 #12151c;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
         }
-        .install-btn {
+
+        .btn-up:active, .btn-down:active {
+            transform: translateY(2px);
+            box-shadow: 0 1px 0 #12151c;
+        }
+
+        .cost-badge {
+            background: #1f1b12;
+            padding: 4px 10px;
+            border-radius: 50px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            color: #f5bc70;
+            border: 1px solid #ba874a;
+        }
+
+        /* Кнопка сброса */
+        .reset-area {
+            padding: 6px 28px 28px 28px;
+            text-align: center;
+        }
+
+        .reset-btn {
+            background: #3a2e24;
+            border: 1px solid #b87c3c;
+            padding: 12px 24px;
+            border-radius: 60px;
+            font-weight: bold;
+            color: #ffdaaa;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: 0.1s;
+            width: 100%;
+            max-width: 200px;
+            margin: 0 auto;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        }
+
+        .reset-btn:active {
+            transform: translateY(2px);
+        }
+
+        /* Кнопка установки PWA */
+        .install-pwa-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
             background: #d4af37;
             color: #1a1a1a;
-            font-size: 18px;
-            padding: 15px 30px;
-            width: auto;
-            margin-top: 20px;
+            padding: 12px 24px;
+            border-radius: 50px;
             font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
             display: none;
             animation: pulse 1s infinite;
+            border: none;
+            font-size: 14px;
         }
+
         @keyframes pulse {
             0%, 100% { transform: scale(1); }
             50% { transform: scale(1.05); }
         }
-        .reset-btn {
-            background: #3a2e24;
-            margin-top: 10px;
-            width: 100%;
-        }
-        footer {
-            margin-top: 20px;
-            font-size: 12px;
-            color: #857c66;
-        }
-        .status {
-            margin-top: 10px;
-            padding: 10px;
-            border-radius: 20px;
+
+        /* Статус PWA */
+        .pwa-status {
+            font-size: 0.7rem;
+            text-align: center;
+            padding: 8px;
             background: #1a1d25;
-            font-size: 12px;
+            margin-top: 10px;
+            border-radius: 20px;
             color: #b9aa7a;
         }
+
+        footer {
+            font-size: 0.65rem;
+            text-align: center;
+            padding: 15px;
+            background: #191c22;
+            color: #857c66;
+        }
+
+        @media (max-width: 500px) {
+            .avatar { width: 85px; height: 85px; }
+            .avatar span { font-size: 48px; }
+            .player-name { font-size: 1.5rem; }
+            .stat-card { flex-direction: column; align-items: stretch; }
+            .stat-controls { justify-content: center; }
+            .install-pwa-btn { bottom: 10px; right: 10px; padding: 8px 16px; font-size: 12px; }
+        }
     </style>
+    <!-- QRCode библиотека -->
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
 </head>
 <body>
-<div class="card">
-    <div class="avatar">⚔️🧙</div>
-    <h1>Альтаир</h1>
-    <div class="stat">
-        <span class="stat-name">💪 СИЛА</span>
-        <span class="stat-value" id="strength">10</span>
-        <div>
-            <button onclick="changeStat('strength', 1)">+</button>
-            <button onclick="changeStat('strength', -1)">-</button>
+
+<div class="rpg-card">
+    <!-- Верх: аватар и QR -->
+    <div class="player-header">
+        <div class="avatar">
+            <span>⚔️🧙</span>
+        </div>
+        <div class="qr-area">
+            <div id="qrcode"></div>
         </div>
     </div>
-    <div class="stat">
-        <span class="stat-name">🏹 ЛОВКОСТЬ</span>
-        <span class="stat-value" id="agility">10</span>
-        <div>
-            <button onclick="changeStat('agility', 1)">+</button>
-            <button onclick="changeStat('agility', -1)">-</button>
+
+    <!-- Имя игрока -->
+    <div class="player-name-section">
+        <div class="player-name">Альтаир</div>
+        <div class="player-title">★ Искатель приключений ★</div>
+    </div>
+
+    <!-- Параметры -->
+    <div class="stats-container">
+        <!-- Сила -->
+        <div class="stat-card str">
+            <div class="stat-info">
+                <div class="stat-icon">💪</div>
+                <div class="stat-details">
+                    <div class="stat-name">СИЛА</div>
+                    <div class="stat-value" id="strengthValue">10</div>
+                </div>
+            </div>
+            <div class="stat-controls">
+                <button class="btn-up" id="strUp">▲</button>
+                <button class="btn-down" id="strDown">▼</button>
+                <span class="cost-badge">стоимость: 5 🪙</span>
+            </div>
+        </div>
+
+        <!-- Ловкость -->
+        <div class="stat-card agi">
+            <div class="stat-info">
+                <div class="stat-icon">🏹</div>
+                <div class="stat-details">
+                    <div class="stat-name">ЛОВКОСТЬ</div>
+                    <div class="stat-value" id="agiValue">10</div>
+                </div>
+            </div>
+            <div class="stat-controls">
+                <button class="btn-up" id="agiUp">▲</button>
+                <button class="btn-down" id="agiDown">▼</button>
+                <span class="cost-badge">стоимость: 5 🪙</span>
+            </div>
+        </div>
+
+        <!-- Монеты -->
+        <div class="stat-card coin">
+            <div class="stat-info">
+                <div class="stat-icon">💰</div>
+                <div class="stat-details">
+                    <div class="stat-name">МОНЕТЫ</div>
+                    <div class="stat-value" id="coinsValue">25</div>
+                </div>
+            </div>
+            <div class="stat-controls">
+                <button class="btn-up" id="coinUp">▲</button>
+                <button class="btn-down" id="coinDown">▼</button>
+                <span class="cost-badge">свободно</span>
+            </div>
         </div>
     </div>
-    <div class="stat">
-        <span class="stat-name">💰 МОНЕТЫ</span>
-        <span class="stat-value" id="coins">25</span>
-        <div>
-            <button onclick="changeCoins(1)">+</button>
-            <button onclick="changeCoins(-1)">-</button>
-        </div>
+
+    <!-- Сброс -->
+    <div class="reset-area">
+        <button class="reset-btn" id="resetBtn">⟳ СБРОС ПЕРСОНАЖА</button>
     </div>
-    <button class="reset-btn" onclick="resetGame()">⟳ СБРОС</button>
-    <button class="install-btn" id="installBtn">📲 УСТАНОВИТЬ ПРИЛОЖЕНИЕ</button>
-    <div class="status" id="status">🔄 Проверка возможности установки...</div>
-    <footer>🎮 Прокачка силы/ловкости = 5 монет</footer>
+
+    <!-- Статус PWA -->
+    <div class="pwa-status" id="pwaStatus">🔄 Проверка возможности установки...</div>
+    
+    <footer>
+        🎮 Прокачка силы/ловкости стоит 5 монет за +1 | Монеты меняются свободно
+    </footer>
 </div>
 
+<!-- Кнопка установки PWA -->
+<button class="install-pwa-btn" id="installBtn">📲 Установить приложение</button>
+
 <script>
-    // ИГРОВАЯ ЛОГИКА
-    let strength = 10, agility = 10, coins = 25;
-    const COST = 5;
-    
-    function updateUI() {
-        document.getElementById('strength').innerText = strength;
-        document.getElementById('agility').innerText = agility;
-        document.getElementById('coins').innerText = coins;
-        localStorage.setItem('rpgData', JSON.stringify({ strength, agility, coins }));
-    }
-    
-    function changeStat(stat, delta) {
-        if (stat === 'strength') {
-            if (delta === 1 && coins >= COST) { strength++; coins -= COST; }
-            else if (delta === -1 && strength > 0) { strength--; coins += COST; }
-            else if (delta === 1 && coins < COST) { alert('❌ Нужно 5 монет!'); return; }
-        } else if (stat === 'agility') {
-            if (delta === 1 && coins >= COST) { agility++; coins -= COST; }
-            else if (delta === -1 && agility > 0) { agility--; coins += COST; }
-            else if (delta === 1 && coins < COST) { alert('❌ Нужно 5 монет!'); return; }
+    // ========== ИГРОВАЯ ЛОГИКА ==========
+    let strength = 10;
+    let agility = 10;
+    let coins = 25;
+    const UPGRADE_COST = 5;
+
+    // DOM элементы
+    const strengthEl = document.getElementById('strengthValue');
+    const agilityEl = document.getElementById('agiValue');
+    const coinsEl = document.getElementById('coinsValue');
+
+    // Загрузка сохранений из localStorage
+    function loadGame() {
+        const saved = localStorage.getItem('rpgPlayerData');
+        if (saved) {
+            try {
+                const data = JSON.parse(saved);
+                strength = data.strength ?? 10;
+                agility = data.agility ?? 10;
+                coins = data.coins ?? 25;
+            } catch(e) { console.log('Ошибка загрузки'); }
         }
         updateUI();
     }
-    
-    function changeCoins(delta) {
-        if (delta === 1) { coins++; }
-        else if (delta === -1 && coins > 0) { coins--; }
-        else if (delta === -1 && coins === 0) { alert('💰 Нет монет!'); return; }
+
+    // Сохранение игры
+    function saveGame() {
+        const data = { strength, agility, coins };
+        localStorage.setItem('rpgPlayerData', JSON.stringify(data));
+    }
+
+    // Обновление интерфейса и QR кода
+    function updateUI() {
+        strengthEl.textContent = strength;
+        agilityEl.textContent = agility;
+        coinsEl.textContent = coins;
+        saveGame();
+        updateQR();
+    }
+
+    // Обновление QR кода с текущими параметрами
+    function updateQR() {
+        const container = document.getElementById('qrcode');
+        container.innerHTML = '';
+        const qrText = `RPG: ${strength}💪 ${agility}🏹 ${coins}💰`;
+        new QRCode(container, {
+            text: qrText,
+            width: 88,
+            height: 88,
+            colorDark: "#000000",
+            colorLight: "#ffffff",
+            correctLevel: QRCode.CorrectLevel.M
+        });
+    }
+
+    // Прокачка силы
+    function increaseStrength() {
+        if (coins >= UPGRADE_COST) {
+            strength++;
+            coins -= UPGRADE_COST;
+            updateUI();
+        } else {
+            alert('❌ Не хватает монет! Нужно ' + UPGRADE_COST + ' монет.');
+        }
+    }
+
+    function decreaseStrength() {
+        if (strength > 0) {
+            strength--;
+            coins += UPGRADE_COST;
+            updateUI();
+        } else {
+            alert('⚡ Сила не может быть ниже 0!');
+        }
+    }
+
+    // Прокачка ловкости
+    function increaseAgility() {
+        if (coins >= UPGRADE_COST) {
+            agility++;
+            coins -= UPGRADE_COST;
+            updateUI();
+        } else {
+            alert('❌ Не хватает монет! Нужно ' + UPGRADE_COST + ' монет.');
+        }
+    }
+
+    function decreaseAgility() {
+        if (agility > 0) {
+            agility--;
+            coins += UPGRADE_COST;
+            updateUI();
+        } else {
+            alert('🏹 Ловкость не может быть ниже 0!');
+        }
+    }
+
+    // Изменение монет
+    function increaseCoins() {
+        coins++;
         updateUI();
     }
-    
-    function resetGame() {
-        strength = 10; agility = 10; coins = 25;
-        updateUI();
-        alert('✨ Сброс выполнен!');
+
+    function decreaseCoins() {
+        if (coins > 0) {
+            coins--;
+            updateUI();
+        } else {
+            alert('💰 Монет не осталось!');
+        }
     }
-    
-    // ЗАГРУЗКА СОХРАНЕНИЙ
-    const saved = localStorage.getItem('rpgData');
-    if (saved) {
-        const data = JSON.parse(saved);
-        strength = data.strength || 10;
-        agility = data.agility || 10;
-        coins = data.coins || 25;
+
+    // Сброс персонажа
+    function resetCharacter() {
+        strength = 10;
+        agility = 10;
+        coins = 25;
         updateUI();
-    } else { updateUI(); }
-    
-    // ========== PWA УСТАНОВКА (РАБОЧАЯ) ==========
+        alert('✨ Персонаж возвращён к исходным параметрам! ✨');
+        
+        // Визуальный эффект
+        const resetBtn = document.getElementById('resetBtn');
+        resetBtn.style.transform = 'scale(0.98)';
+        setTimeout(() => { resetBtn.style.transform = ''; }, 120);
+    }
+
+    // ========== PWA УСТАНОВКА ==========
     let deferredPrompt;
     const installBtn = document.getElementById('installBtn');
-    const statusDiv = document.getElementById('status');
-    
-    // Событие beforeinstallprompt - ГЛАВНОЕ ДЛЯ УСТАНОВКИ
+    const pwaStatus = document.getElementById('pwaStatus');
+
+    // Слушаем событие beforeinstallprompt (браузер предлагает установку)
     window.addEventListener('beforeinstallprompt', (e) => {
         e.preventDefault();
         deferredPrompt = e;
         installBtn.style.display = 'block';
-        statusDiv.innerHTML = '✅ Приложение ГОТОВО к установке! Нажмите кнопку выше.';
-        statusDiv.style.background = '#2a4a2a';
-        console.log('✅ beforeinstallprompt сработал!');
+        pwaStatus.innerHTML = '✅ Приложение готово к установке! Нажмите кнопку справа.';
+        pwaStatus.style.background = '#2a4a2a';
+        pwaStatus.style.color = '#aaffaa';
+        console.log('✅ beforeinstallprompt сработал');
     });
-    
+
     // Обработчик кнопки установки
     installBtn.addEventListener('click', async () => {
         if (deferredPrompt) {
@@ -187,39 +555,55 @@
             const { outcome } = await deferredPrompt.userChoice;
             if (outcome === 'accepted') {
                 installBtn.style.display = 'none';
-                statusDiv.innerHTML = '✅ Приложение успешно установлено! 🎉';
-                statusDiv.style.background = '#2a4a2a';
+                pwaStatus.innerHTML = '✅ Приложение успешно установлено! 🎉';
+                pwaStatus.style.background = '#2a4a2a';
             } else {
-                statusDiv.innerHTML = '❌ Установка отклонена';
+                pwaStatus.innerHTML = '❌ Установка отменена';
             }
             deferredPrompt = null;
         } else {
-            statusDiv.innerHTML = '⚠️ К сожалению, установка не поддерживается. Попробуйте Chrome на Android или Edge на ПК.';
+            pwaStatus.innerHTML = '⚠️ Установка не поддерживается. Попробуйте Chrome на Android.';
         }
     });
-    
-    // Если PWA уже установлено
+
+    // Если приложение уже установлено и запущено как PWA
     window.addEventListener('appinstalled', () => {
         installBtn.style.display = 'none';
-        statusDiv.innerHTML = '🎉 Спасибо за установку! Приложение на рабочем столе.';
+        pwaStatus.innerHTML = '🎉 Спасибо за установку! Приложение на рабочем столе.';
     });
-    
-    // Регистрация Service Worker (обязательно!)
-    if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('/sw.js').then(reg => {
-            console.log('✅ SW зарегистрирован:', reg);
-            statusDiv.innerHTML += ' | SW: ✅';
-        }).catch(err => {
-            console.log('❌ Ошибка SW:', err);
-            statusDiv.innerHTML += ' | SW: ❌';
-        });
-    }
-    
-    // Если браузер не поддерживает установку
+
+    // Проверка, запущено ли уже как PWA
     if (window.matchMedia('(display-mode: standalone)').matches) {
         installBtn.style.display = 'none';
-        statusDiv.innerHTML = '🎮 Приложение уже запущено как PWA!';
+        pwaStatus.innerHTML = '🎮 Приложение запущено как PWA';
     }
+
+    // Регистрация Service Worker (с правильным путём для GitHub Pages)
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('/Test2245/sw.js').then(registration => {
+                console.log('✅ Service Worker зарегистрирован:', registration);
+                pwaStatus.innerHTML += ' | SW: ✅';
+            }).catch(error => {
+                console.log('❌ Ошибка регистрации Service Worker:', error);
+                pwaStatus.innerHTML += ' | SW: ❌';
+            });
+        });
+    } else {
+        pwaStatus.innerHTML = '⚠️ Service Worker не поддерживается';
+    }
+
+    // ========== НАЗНАЧЕНИЕ ОБРАБОТЧИКОВ ==========
+    document.getElementById('strUp').addEventListener('click', increaseStrength);
+    document.getElementById('strDown').addEventListener('click', decreaseStrength);
+    document.getElementById('agiUp').addEventListener('click', increaseAgility);
+    document.getElementById('agiDown').addEventListener('click', decreaseAgility);
+    document.getElementById('coinUp').addEventListener('click', increaseCoins);
+    document.getElementById('coinDown').addEventListener('click', decreaseCoins);
+    document.getElementById('resetBtn').addEventListener('click', resetCharacter);
+
+    // Инициализация
+    loadGame();
 </script>
 </body>
 </html>
