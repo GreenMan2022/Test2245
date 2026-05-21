@@ -3,395 +3,222 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <meta name="theme-color" content="#2c2f36">
-    <meta name="description" content="RPG карточка игрока с прокачкой силы, ловкости и монет">
-    <link rel="manifest" href="manifest.json">
-    <link rel="apple-touch-icon" href="icons/icon-192.png">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>RPG Карточка Игрока</title>
+    <title>RPG Карточка - Установка PWA</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            user-select: none;
-            -webkit-tap-highlight-color: transparent;
-        }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             min-height: 100vh;
-            background: linear-gradient(145deg, #1a2a3a 0%, #0f1a24 100%);
+            background: linear-gradient(145deg, #1a2a3a, #0f1a24);
             display: flex;
             justify-content: center;
             align-items: center;
-            font-family: 'Segoe UI', 'Poppins', system-ui, sans-serif;
+            font-family: system-ui, 'Segoe UI', sans-serif;
             padding: 20px;
         }
-
-        .rpg-card {
-            max-width: 560px;
-            width: 100%;
+        .card {
+            max-width: 500px;
             background: #2c2f36;
-            background-image: radial-gradient(circle at 10% 20%, rgba(255,215,150,0.05) 2%, transparent 2.5%);
-            background-size: 28px 28px;
             border-radius: 48px;
-            box-shadow: 0 25px 45px rgba(0, 0, 0, 0.5);
-            border: 1px solid rgba(210, 180, 110, 0.4);
-            overflow: hidden;
-        }
-
-        .player-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 24px 28px;
-            background: rgba(20, 24, 30, 0.7);
-            border-bottom: 2px solid #d4af37;
-            gap: 20px;
-            flex-wrap: wrap;
-        }
-
-        .avatar {
-            width: 110px;
-            height: 110px;
-            background: linear-gradient(135deg, #2b2e3a, #1e2129);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border: 3px solid #e4c580;
-            font-size: 62px;
-        }
-
-        .qr-area {
-            background: white;
-            padding: 8px;
-            border-radius: 20px;
-            background: #f5f2e0;
-        }
-        #qrcode {
-            width: 88px;
-            height: 88px;
-        }
-
-        .player-name-section {
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+            border: 1px solid #d4af37;
             text-align: center;
-            margin: 20px;
-            padding: 10px;
-            background: #1f222b;
-            border-radius: 60px;
         }
-        .player-name {
-            font-size: 1.9rem;
-            font-weight: 800;
-            background: linear-gradient(135deg, #FFE6B0, #e4b363);
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-        }
-        .player-title {
-            font-size: 0.75rem;
-            color: #b9aa7a;
-        }
-
-        .stats-container {
-            padding: 20px 28px;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-
-        .stat-card {
+        .avatar { font-size: 80px; margin: 20px 0; }
+        h1 { color: #ffdd99; margin-bottom: 10px; }
+        .stat {
             background: #23262f;
-            border-radius: 32px;
-            padding: 16px 20px;
+            margin: 15px 0;
+            padding: 15px;
+            border-radius: 30px;
             display: flex;
-            align-items: center;
             justify-content: space-between;
-            flex-wrap: wrap;
-            gap: 15px;
-            border-left: 6px solid;
-        }
-        .stat-card.str { border-left-color: #e34d3a; }
-        .stat-card.agi { border-left-color: #4caf9e; }
-        .stat-card.coin { border-left-color: #f7b32b; }
-
-        .stat-info {
-            display: flex;
             align-items: center;
-            gap: 15px;
-            flex: 1;
         }
-        .stat-icon { font-size: 2.3rem; }
-        .stat-name { font-weight: bold; font-size: 1.1rem; color: #ede0c8; }
-        .stat-value { font-size: 1.8rem; font-weight: 800; color: #ffdd99; }
-
-        .stat-controls {
-            display: flex;
-            gap: 10px;
-            background: #1a1d25;
-            padding: 6px 12px;
-            border-radius: 60px;
-        }
-        .btn-up, .btn-down {
+        .stat-name { font-size: 20px; font-weight: bold; color: #ede0c8; }
+        .stat-value { font-size: 28px; font-weight: bold; color: #ffdd99; }
+        button {
             background: #2f3542;
             border: none;
-            font-size: 1.6rem;
-            width: 44px;
-            height: 44px;
-            border-radius: 40px;
+            font-size: 24px;
+            width: 50px;
+            height: 50px;
+            border-radius: 30px;
             cursor: pointer;
             color: #eedd99;
-            transition: 0.05s linear;
+            margin: 0 5px;
         }
-        .btn-up:active, .btn-down:active {
-            transform: scale(0.95);
-        }
-        .cost-badge {
-            background: #1f1b12;
-            padding: 4px 10px;
-            border-radius: 50px;
-            font-size: 0.75rem;
-            color: #f5bc70;
-        }
-
-        .reset-area {
-            padding: 10px 28px 28px;
-            text-align: center;
-        }
-        .reset-btn {
-            background: #3a2e24;
-            border: 1px solid #b87c3c;
-            padding: 12px 24px;
-            border-radius: 60px;
-            color: #ffdaaa;
-            cursor: pointer;
-            font-weight: bold;
-            width: 100%;
-            max-width: 200px;
-        }
-
-        .install-pwa {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
+        .install-btn {
             background: #d4af37;
             color: #1a1a1a;
-            padding: 12px 20px;
-            border-radius: 50px;
+            font-size: 18px;
+            padding: 15px 30px;
+            width: auto;
+            margin-top: 20px;
             font-weight: bold;
-            cursor: pointer;
             display: none;
-            z-index: 1000;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
             animation: pulse 1s infinite;
         }
         @keyframes pulse {
             0%, 100% { transform: scale(1); }
             50% { transform: scale(1.05); }
         }
-
+        .reset-btn {
+            background: #3a2e24;
+            margin-top: 10px;
+            width: 100%;
+        }
         footer {
-            font-size: 0.65rem;
-            text-align: center;
-            padding: 15px;
-            background: #191c22;
+            margin-top: 20px;
+            font-size: 12px;
             color: #857c66;
         }
-
-        @media (max-width: 500px) {
-            .avatar { width: 80px; height: 80px; font-size: 48px; }
-            .player-name { font-size: 1.4rem; }
-            .install-pwa { bottom: 10px; right: 10px; padding: 8px 15px; font-size: 12px; }
+        .status {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 20px;
+            background: #1a1d25;
+            font-size: 12px;
+            color: #b9aa7a;
         }
     </style>
-    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
 </head>
 <body>
-<div class="rpg-card">
-    <div class="player-header">
-        <div class="avatar">⚔️🧙</div>
-        <div class="qr-area">
-            <div id="qrcode"></div>
+<div class="card">
+    <div class="avatar">⚔️🧙</div>
+    <h1>Альтаир</h1>
+    <div class="stat">
+        <span class="stat-name">💪 СИЛА</span>
+        <span class="stat-value" id="strength">10</span>
+        <div>
+            <button onclick="changeStat('strength', 1)">+</button>
+            <button onclick="changeStat('strength', -1)">-</button>
         </div>
     </div>
-
-    <div class="player-name-section">
-        <div class="player-name">Альтаир</div>
-        <div class="player-title">★ Искатель приключений ★</div>
-    </div>
-
-    <div class="stats-container">
-        <div class="stat-card str">
-            <div class="stat-info">
-                <div class="stat-icon">💪</div>
-                <div>
-                    <div class="stat-name">СИЛА</div>
-                    <div class="stat-value" id="strength">10</div>
-                </div>
-            </div>
-            <div class="stat-controls">
-                <button class="btn-up" onclick="changeStat('strength', 1)">▲</button>
-                <button class="btn-down" onclick="changeStat('strength', -1)">▼</button>
-                <span class="cost-badge">стоит 5 🪙</span>
-            </div>
-        </div>
-
-        <div class="stat-card agi">
-            <div class="stat-info">
-                <div class="stat-icon">🏹</div>
-                <div>
-                    <div class="stat-name">ЛОВКОСТЬ</div>
-                    <div class="stat-value" id="agility">10</div>
-                </div>
-            </div>
-            <div class="stat-controls">
-                <button class="btn-up" onclick="changeStat('agility', 1)">▲</button>
-                <button class="btn-down" onclick="changeStat('agility', -1)">▼</button>
-                <span class="cost-badge">стоит 5 🪙</span>
-            </div>
-        </div>
-
-        <div class="stat-card coin">
-            <div class="stat-info">
-                <div class="stat-icon">💰</div>
-                <div>
-                    <div class="stat-name">МОНЕТЫ</div>
-                    <div class="stat-value" id="coins">25</div>
-                </div>
-            </div>
-            <div class="stat-controls">
-                <button class="btn-up" onclick="changeCoins(1)">▲</button>
-                <button class="btn-down" onclick="changeCoins(-1)">▼</button>
-                <span class="cost-badge">свободно</span>
-            </div>
+    <div class="stat">
+        <span class="stat-name">🏹 ЛОВКОСТЬ</span>
+        <span class="stat-value" id="agility">10</span>
+        <div>
+            <button onclick="changeStat('agility', 1)">+</button>
+            <button onclick="changeStat('agility', -1)">-</button>
         </div>
     </div>
-
-    <div class="reset-area">
-        <button class="reset-btn" onclick="resetGame()">⟳ СБРОС ПЕРСОНАЖА</button>
+    <div class="stat">
+        <span class="stat-name">💰 МОНЕТЫ</span>
+        <span class="stat-value" id="coins">25</span>
+        <div>
+            <button onclick="changeCoins(1)">+</button>
+            <button onclick="changeCoins(-1)">-</button>
+        </div>
     </div>
-    <footer>🎮 Прокачка стоит 5 монет | Установите как приложение!</footer>
+    <button class="reset-btn" onclick="resetGame()">⟳ СБРОС</button>
+    <button class="install-btn" id="installBtn">📲 УСТАНОВИТЬ ПРИЛОЖЕНИЕ</button>
+    <div class="status" id="status">🔄 Проверка возможности установки...</div>
+    <footer>🎮 Прокачка силы/ловкости = 5 монет</footer>
 </div>
 
-<div class="install-pwa" id="installBtn">📲 Установить приложение</div>
-
 <script>
-    // Игровые данные
+    // ИГРОВАЯ ЛОГИКА
     let strength = 10, agility = 10, coins = 25;
     const COST = 5;
     
-    // Обновление UI
     function updateUI() {
         document.getElementById('strength').innerText = strength;
         document.getElementById('agility').innerText = agility;
         document.getElementById('coins').innerText = coins;
-        
-        // Обновляем QR код
-        document.getElementById('qrcode').innerHTML = '';
-        new QRCode(document.getElementById('qrcode'), {
-            text: `RPG: ${strength}💪 ${agility}🏹 ${coins}💰`,
-            width: 88,
-            height: 88
-        });
-        
-        // Сохраняем
         localStorage.setItem('rpgData', JSON.stringify({ strength, agility, coins }));
     }
     
-    // Изменение статов
     function changeStat(stat, delta) {
         if (stat === 'strength') {
-            if (delta > 0 && coins >= COST) {
-                strength++;
-                coins -= COST;
-                updateUI();
-            } else if (delta < 0 && strength > 0) {
-                strength--;
-                coins += COST;
-                updateUI();
-            } else if (delta > 0 && coins < COST) {
-                alert('❌ Не хватает монет!');
-            }
+            if (delta === 1 && coins >= COST) { strength++; coins -= COST; }
+            else if (delta === -1 && strength > 0) { strength--; coins += COST; }
+            else if (delta === 1 && coins < COST) { alert('❌ Нужно 5 монет!'); return; }
         } else if (stat === 'agility') {
-            if (delta > 0 && coins >= COST) {
-                agility++;
-                coins -= COST;
-                updateUI();
-            } else if (delta < 0 && agility > 0) {
-                agility--;
-                coins += COST;
-                updateUI();
-            } else if (delta > 0 && coins < COST) {
-                alert('❌ Не хватает монет!');
-            }
+            if (delta === 1 && coins >= COST) { agility++; coins -= COST; }
+            else if (delta === -1 && agility > 0) { agility--; coins += COST; }
+            else if (delta === 1 && coins < COST) { alert('❌ Нужно 5 монет!'); return; }
         }
+        updateUI();
     }
     
     function changeCoins(delta) {
-        if (delta > 0) {
-            coins++;
-            updateUI();
-        } else if (delta < 0 && coins > 0) {
-            coins--;
-            updateUI();
-        } else if (delta < 0 && coins <= 0) {
-            alert('💰 Монет не осталось!');
-        }
+        if (delta === 1) { coins++; }
+        else if (delta === -1 && coins > 0) { coins--; }
+        else if (delta === -1 && coins === 0) { alert('💰 Нет монет!'); return; }
+        updateUI();
     }
     
     function resetGame() {
-        strength = 10;
-        agility = 10;
-        coins = 25;
+        strength = 10; agility = 10; coins = 25;
         updateUI();
-        alert('✨ Персонаж сброшен до начальных значений! ✨');
+        alert('✨ Сброс выполнен!');
     }
     
-    // Загрузка сохранений
+    // ЗАГРУЗКА СОХРАНЕНИЙ
     const saved = localStorage.getItem('rpgData');
     if (saved) {
         const data = JSON.parse(saved);
         strength = data.strength || 10;
         agility = data.agility || 10;
         coins = data.coins || 25;
-    }
-    updateUI();
+        updateUI();
+    } else { updateUI(); }
     
-    // ========== PWA УСТАНОВКА ==========
+    // ========== PWA УСТАНОВКА (РАБОЧАЯ) ==========
     let deferredPrompt;
     const installBtn = document.getElementById('installBtn');
+    const statusDiv = document.getElementById('status');
     
-    // Слушаем событие установки PWA
+    // Событие beforeinstallprompt - ГЛАВНОЕ ДЛЯ УСТАНОВКИ
     window.addEventListener('beforeinstallprompt', (e) => {
         e.preventDefault();
         deferredPrompt = e;
         installBtn.style.display = 'block';
-        console.log('✅ Можно установить приложение!');
+        statusDiv.innerHTML = '✅ Приложение ГОТОВО к установке! Нажмите кнопку выше.';
+        statusDiv.style.background = '#2a4a2a';
+        console.log('✅ beforeinstallprompt сработал!');
     });
     
+    // Обработчик кнопки установки
     installBtn.addEventListener('click', async () => {
         if (deferredPrompt) {
             deferredPrompt.prompt();
             const { outcome } = await deferredPrompt.userChoice;
             if (outcome === 'accepted') {
                 installBtn.style.display = 'none';
-                console.log('✅ Приложение установлено!');
+                statusDiv.innerHTML = '✅ Приложение успешно установлено! 🎉';
+                statusDiv.style.background = '#2a4a2a';
+            } else {
+                statusDiv.innerHTML = '❌ Установка отклонена';
             }
             deferredPrompt = null;
+        } else {
+            statusDiv.innerHTML = '⚠️ К сожалению, установка не поддерживается. Попробуйте Chrome на Android или Edge на ПК.';
         }
     });
     
-    // Регистрация Service Worker
+    // Если PWA уже установлено
+    window.addEventListener('appinstalled', () => {
+        installBtn.style.display = 'none';
+        statusDiv.innerHTML = '🎉 Спасибо за установку! Приложение на рабочем столе.';
+    });
+    
+    // Регистрация Service Worker (обязательно!)
     if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-            navigator.serviceWorker.register('/sw.js').then(reg => {
-                console.log('✅ Service Worker зарегистрирован:', reg);
-            }).catch(err => {
-                console.log('❌ Ошибка SW:', err);
-            });
+        navigator.serviceWorker.register('/sw.js').then(reg => {
+            console.log('✅ SW зарегистрирован:', reg);
+            statusDiv.innerHTML += ' | SW: ✅';
+        }).catch(err => {
+            console.log('❌ Ошибка SW:', err);
+            statusDiv.innerHTML += ' | SW: ❌';
         });
+    }
+    
+    // Если браузер не поддерживает установку
+    if (window.matchMedia('(display-mode: standalone)').matches) {
+        installBtn.style.display = 'none';
+        statusDiv.innerHTML = '🎮 Приложение уже запущено как PWA!';
     }
 </script>
 </body>
